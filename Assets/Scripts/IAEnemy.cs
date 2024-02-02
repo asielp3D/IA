@@ -124,12 +124,13 @@ public class IAEnemy : MonoBehaviour
 
     void Wait()
     {
-
+        
     }
 
     void Attack()
     {
-
+        enemyAgent.destination = playerTransform.position;
+        Debug.Log("Te pego zorra");
     }
 
     void SetRabdomPoint()
