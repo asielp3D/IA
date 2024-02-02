@@ -9,7 +9,13 @@ public class IAEnemy : MonoBehaviour
     {
         Patrolling,
 
-        Chasing
+        Chasing,
+
+        Searching,
+
+        Waiting,
+
+        Attacking,
     }
 
     State currentState;
@@ -23,6 +29,12 @@ public class IAEnemy : MonoBehaviour
 
     [SerializeField] float visionRange = 15;
     [SerializeField] float visionAngle = 90;
+
+    Vector3 lastTargetPosition;
+
+    [SerializeField]float searchTimer;
+    [SerializeField]float searchWaitTime = 15;
+    [SerializeField]float searchRadius = 30;
 
     void Awake()
     {
@@ -47,6 +59,15 @@ public class IAEnemy : MonoBehaviour
             case State.Chasing:
                  Chase();
             break;
+            case State.Searching:
+                 Search();
+            break;
+            case State.Waiting:
+                 Wait();
+            break;
+            case State.Attacking:
+                 Attack();
+            break;
         }
     }
 
@@ -70,8 +91,45 @@ public class IAEnemy : MonoBehaviour
 
         if(OnRange() == false)
         {
+            searchTimer = 0;
+            currentState = State.Searching;
+        }
+    }
+
+    void Search()
+    {
+        if(OnRange() == true)
+        {
+            currentState = State.Chasing;
+        }
+        
+        searchTimer += Time.deltaTime;
+
+        if(searchTimer < searchWaitTime)
+        {
+            if(enemyAgent.remainingDistance < 0.5F)
+            {
+                Debug.Log("Buscando punto aleatorio");
+
+                Vector3 randomSearchPoint = lastTargetPosition + Random.insideUnitSphere * searchRadius;
+                randomSearchPoint.y = lastTargetPosition.y;
+                enemyAgent.destination = randomSearchPoint;
+            }
+        }
+        else
+        {
             currentState = State.Patrolling;
         }
+    }
+
+    void Wait()
+    {
+
+    }
+
+    void Attack()
+    {
+
     }
 
     void SetRabdomPoint()
@@ -98,8 +156,26 @@ public class IAEnemy : MonoBehaviour
         
         if(distanceToPlayer <= visionRange && angleToPlayer < visionAngle * 0.5f)
         {
+            if(playerTransform.position == lastTargetPosition)
+            {
+                return true;
+            }
 
+            RaycastHit hit;
+            if(Physics.Raycast(transform.position, directionToPlayer, out hit, distanceToPlayer))
+            {
+                if(hit.collider.CompareTag("Player"))
+                {
+                    lastTargetPosition = playerTransform.position;
+
+                    return true;
+                }
+            }
+
+            return false;
         }
+
+        return false;
     }
 
     void OnDrawGizmos()
@@ -111,8 +187,8 @@ public class IAEnemy : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, visionRange);
 
         Gizmos.color = Color.green;
-        Vector3 fovLine1 = Quaternion.AnlgeAxis(visionAngle *0,5f, transform.up) * transform.forward * visionRange;
-        Vector3 fovLine2 = Quaternion.AnlgeAxis(-visionAngle *0,5f, transform.up) * transform.forward * visionRange;
+        Vector3 fovLine1 = Quaternion.AngleAxis(visionAngle *0.5f, transform.up) * transform.forward * visionRange;
+        Vector3 fovLine2 = Quaternion.AngleAxis(-visionAngle *0.5f, transform.up) * transform.forward * visionRange;
         Gizmos.DrawLine (transform.position, transform.position + fovLine1);
         Gizmos.DrawLine (transform.position, transform.position + fovLine2);
     }
