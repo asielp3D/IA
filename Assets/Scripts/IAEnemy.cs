@@ -136,6 +136,12 @@ public class IAEnemy : MonoBehaviour
 
     void Wait()
     {
+        StartCoroutine("Esperar")
+    }
+
+    IEnumerator Esperar()
+    {
+        yield return new WaitForSeconds(3);
         
     }
 
