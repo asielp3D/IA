@@ -18,6 +18,10 @@ public class IAEnemy : MonoBehaviour
         Attacking,
     }
 
+    public Transform[] points;
+
+    private int destPoint = 0;
+
     State currentState;
 
     NavMeshAgent enemyAgent;
@@ -36,6 +40,8 @@ public class IAEnemy : MonoBehaviour
     [SerializeField]float searchWaitTime = 15;
     [SerializeField]float searchRadius = 30;
 
+    
+
     void Awake()
     {
         enemyAgent = GetComponent<NavMeshAgent>();
@@ -46,6 +52,7 @@ public class IAEnemy : MonoBehaviour
     void Start()
     {
         currentState = State.Patrolling;
+        GoToNextPoint();
     }
 
     // Update is called once per frame
@@ -69,6 +76,11 @@ public class IAEnemy : MonoBehaviour
                  Attack();
             break;
         }
+
+        if (enemyAgent.remainingDistance < 0.5f)
+        {
+            GoToNextPoint();
+        }
     }
 
     void Patrol()
@@ -81,7 +93,7 @@ public class IAEnemy : MonoBehaviour
         
         if(enemyAgent.remainingDistance < 0.5f)
         {
-            SetRabdomPoint();
+            //SetRandomPoint();
         }
     }
 
@@ -133,23 +145,35 @@ public class IAEnemy : MonoBehaviour
         Debug.Log("Te pego zorra");
     }
 
-    void SetRabdomPoint()
+    void GoToNextPoint()
+    {
+        if (points.Length == 0)
+        {
+            return;
+        }
+
+        enemyAgent.destination = points[destPoint].position;
+        destPoint = (destPoint + 1) % points.Length;
+    }
+
+
+    /*void SetRandomPoint()
     {
         float randomX = Random.Range (-patrolAreaSize.x / 2, patrolAreaSize.x / 2);
         float randomZ = Random.Range (-patrolAreaSize.y / 2, patrolAreaSize.y / 2);
         Vector3 randomPoint = new Vector3(randomX, 0f, randomZ) + patrolArenaCenter.position;
 
         enemyAgent.destination = randomPoint;
-    }
+    }*/
 
     bool OnRange()
     {
         /*if(Vector3.Distance(transform.position, playerTransform.position)<= visionRange)
         {
             return true;
-        }
+        }*/
 
-        return false;*/
+        return false;
 
         Vector3 directionToPlayer = playerTransform.position - transform.position;
         float distanceToPlayer = directionToPlayer.magnitude;
