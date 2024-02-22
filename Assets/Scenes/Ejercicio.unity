@@ -26738,6 +26738,7 @@ MonoBehaviour:
   patrolAreaSize: {x: 20, y: 20}
   visionRange: 15
   visionAngle: 90
+  attackRange: 5
   searchTimer: 0
   searchWaitTime: 15
   searchRadius: 30
@@ -27013,7 +27014,7 @@ Transform:
   m_GameObject: {fileID: 1248416203}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.47, y: 2.97, z: 18.47}
+  m_LocalPosition: {x: 26.11, y: 2.97, z: 25.63}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

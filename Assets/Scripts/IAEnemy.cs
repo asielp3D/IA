@@ -34,6 +34,8 @@ public class IAEnemy : MonoBehaviour
     [SerializeField] float visionRange = 15;
     [SerializeField] float visionAngle = 90;
 
+    [SerializeField] float attackRange = 5;
+
     Vector3 lastTargetPosition;
 
     [SerializeField]float searchTimer;
@@ -77,10 +79,7 @@ public class IAEnemy : MonoBehaviour
             break;
         }
 
-        if (enemyAgent.remainingDistance < 0.5f)
-        {
-            GoToNextPoint();
-        }
+        
     }
 
     void Patrol()
@@ -91,9 +90,9 @@ public class IAEnemy : MonoBehaviour
             currentState = State.Chasing;
         }
         
-        if(enemyAgent.remainingDistance < 0.5f)
+        if (enemyAgent.remainingDistance < 0.5f)
         {
-            //SetRandomPoint();
+            GoToNextPoint();
         }
     }
 
@@ -101,11 +100,17 @@ public class IAEnemy : MonoBehaviour
     {
         enemyAgent.destination = playerTransform.position;
 
+        if(OnAttackRange() == true)
+        {
+            currentState = State.Attacking;
+        }
+        
         if(OnRange() == false)
         {
             searchTimer = 0;
             currentState = State.Searching;
         }
+
     }
 
     void Search()
@@ -136,7 +141,7 @@ public class IAEnemy : MonoBehaviour
 
     void Wait()
     {
-        StartCoroutine("Esperar")
+        StartCoroutine("Esperar");
     }
 
     IEnumerator Esperar()
@@ -147,8 +152,8 @@ public class IAEnemy : MonoBehaviour
 
     void Attack()
     {
-        enemyAgent.destination = playerTransform.position;
-        Debug.Log("Te pego zorra");
+        Debug.Log("Te pego pringao");
+        currentState = State.Chasing;
     }
 
     void GoToNextPoint()
@@ -174,10 +179,10 @@ public class IAEnemy : MonoBehaviour
 
     bool OnRange()
     {
-        /*if(Vector3.Distance(transform.position, playerTransform.position)<= visionRange)
+        if(Vector3.Distance(transform.position, playerTransform.position)<= visionRange)
         {
             return true;
-        }*/
+        }
 
         return false;
 
@@ -209,6 +214,35 @@ public class IAEnemy : MonoBehaviour
         return false;
     }
 
+     bool OnAttackRange()
+    {
+        Vector3 directionToPlayer = playerTransform.position - transform.position;
+        float distanceToPlayer = directionToPlayer.magnitude;
+        float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
+
+        if(distanceToPlayer <= visionRange && angleToPlayer < visionAngle * 0.5f)
+        {
+            if(playerTransform.position == lastTargetPosition)
+            {
+                return true;
+            }
+            
+            RaycastHit hit;
+            if(Physics.Raycast(transform.position, directionToPlayer, out hit, attackRange))
+            {
+                Debug.DrawRay(transform.position, directionToPlayer * attackRange, Color.green);
+                if(hit.collider.CompareTag("Player"))
+                {
+                    lastTargetPosition = playerTransform.position;
+                    return true;
+                }
+                
+                return false;
+            }
+        }
+            return false;
+    }
+
     void OnDrawGizmos()
     {
         Gizmos.color = Color.blue;
@@ -216,6 +250,9 @@ public class IAEnemy : MonoBehaviour
 
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, visionRange);
+
+         Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
 
         Gizmos.color = Color.green;
         Vector3 fovLine1 = Quaternion.AngleAxis(visionAngle *0.5f, transform.up) * transform.forward * visionRange;
